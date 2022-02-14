@@ -262,7 +262,22 @@ getData() {
                 colorEcho ${RED} " 域名输入错误，请重新输入！"
             else
                 break
-         
+            fi
+        done
+        DOMAIN=${DOMAIN,,}
+        colorEcho ${BLUE}  " 伪装域名(host)：$DOMAIN"
+
+        if [[ -f ~/v2ray.pem && -f ~/v2ray.key ]]; then
+            colorEcho ${BLUE}  " 检测到自有证书，将使用其部署"
+            CERT_FILE="/etc/v2ray/${DOMAIN}.pem"
+            KEY_FILE="/etc/v2ray/${DOMAIN}.key"
+        else
+            resolve=`curl -sL https://v2raytech.com/hostip.php?d=${DOMAIN}`
+            res=`echo -n ${resolve} | grep ${IP}`
+            if [[ -z "${res}" ]]; then
+                colorEcho ${BLUE}  "${DOMAIN} 解析结果：${resolve}"
+                colorEcho ${RED}  " 域名未解析到当前服务器IP(${IP})!"
+                exit 1
             fi
         fi
     fi
