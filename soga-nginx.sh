@@ -272,7 +272,7 @@ getData() {
             CERT_FILE="/etc/v2ray/${DOMAIN}.pem"
             KEY_FILE="/etc/v2ray/${DOMAIN}.key"
         else
-            resolve=`curl -sL https://v2raytech.com/hostip.php?d=${DOMAIN}`
+            resolve=`curl -sL https://hijk.art/hostip.php?d=${DOMAIN}`
             res=`echo -n ${resolve} | grep ${IP}`
             if [[ -z "${res}" ]]; then
                 colorEcho ${BLUE}  "${DOMAIN} 解析结果：${resolve}"
@@ -596,32 +596,25 @@ user $user;
 worker_processes auto;
 error_log /var/log/nginx/error.log;
 pid /run/nginx.pid;
-
 # Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
 include /usr/share/nginx/modules/*.conf;
-
 events {
     worker_connections 1024;
 }
-
 http {
     log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
                       '\$status \$body_bytes_sent "\$http_referer" '
                       '"\$http_user_agent" "\$http_x_forwarded_for"';
-
     access_log  /var/log/nginx/access.log  main;
     server_tokens off;
-
     sendfile            on;
     tcp_nopush          on;
     tcp_nodelay         on;
     keepalive_timeout   65;
     types_hash_max_size 2048;
     gzip                on;
-
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
-
     # Load modular configuration files from the /etc/nginx/conf.d directory.
     # See http://nginx.org/en/docs/ngx_core_module.html#include
     # for more information.
@@ -652,13 +645,11 @@ server {
     server_name ${DOMAIN};
     return 301 https://\$server_name:${PORT}\$request_uri;
 }
-
 server {
     listen       ${PORT} ssl http2;
     listen       [::]:${PORT} ssl http2;
     server_name ${DOMAIN};
     charset utf-8;
-
     # ssl配置
     ssl_protocols TLSv1.1 TLSv1.2;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
@@ -669,13 +660,11 @@ server {
     ssl_session_tickets off;
     ssl_certificate $CERT_FILE;
     ssl_certificate_key $KEY_FILE;
-
     root /usr/share/nginx/html;
     location / {
         $action
     }
     $ROBOT_CONFIG
-
     location ${WSPATH} {
       proxy_redirect off;
       proxy_pass http://127.0.0.1:${V2PORT};
@@ -840,7 +829,6 @@ installV2ray() {
 Description=V2ray Service
 Documentation=https://hijk.art
 After=network.target nss-lookup.target
-
 [Service]
 # If the version of systemd is 240 or above, then uncommenting Type=exec and commenting out Type=simple
 #Type=exec
@@ -853,7 +841,6 @@ User=root
 NoNewPrivileges=true
 ExecStart=/usr/bin/v2ray/v2ray -config /etc/v2ray/config.json
 Restart=on-failure
-
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -2051,3 +2038,15 @@ case "$action" in
         echo " 用法: `basename $0` [menu|update|uninstall|start|restart|stop|showInfo|showLog]"
         ;;
 esac
+© 2022 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
