@@ -711,20 +711,13 @@ server {
     listen 80;
     listen [::]:80;
     server_name ${DOMAIN};
-    # 注意：在 shell 脚本生成模板时，变量前的反斜杠取决于你的渲染方式
     return 301 https://\$server_name:${PORT}\$request_uri;
 }
-
 server {
     listen       ${PORT} ssl http2;
     listen       [::]:${PORT} ssl http2;
     server_name ${DOMAIN};
     charset utf-8;
-
-    # [核心修改] 添加 DNS 解析器，支持动态域名解析
-    # valid=30s 表示每 30 秒重新解析一次域名
-    resolver 8.8.8.8 1.1.1.1 223.5.5.5 valid=30s;
-
     # ssl配置
     ssl_protocols TLSv1.1 TLSv1.2;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
@@ -735,33 +728,21 @@ server {
     ssl_session_tickets off;
     ssl_certificate $CERT_FILE;
     ssl_certificate_key $KEY_FILE;
-
     root /usr/share/nginx/html;
-
     location / {
         $action
     }
-
     $ROBOT_CONFIG
-
     location ${WSPATH} {
-        # [核心修改] 将后端地址设为变量
-        # 如果你的 ${V2PORT} 是远程地址，请将 127.0.0.1 换成动态域名变量
-        set \$backend_host "127.0.0.1"; 
-        set \$backend_port "${V2PORT}";
-
-        proxy_redirect off;
-        # 使用变量形式的 proxy_pass，强制 Nginx 运行时查询解析
-        proxy_pass http://\$backend_host:\$backend_port;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host \$host;
-        
-        # 传递真实 IP
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+      proxy_redirect off;
+      proxy_pass http://127.0.0.1:${V2PORT};
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host \$host;
+      # Show real IP in v2ray access.log
+      proxy_set_header X-Real-IP \$remote_addr;
+      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     }
 }
 EOF
