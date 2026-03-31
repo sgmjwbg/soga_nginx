@@ -471,27 +471,35 @@ getData() {
 
 installNginx() {
     echo ""
-    colorEcho $BLUE " 安装nginx..."
+    colorEcho $BLUE " 安装nginx及Stream模块..."
     if [[ "$BT" = "false" ]]; then
-        if [[ "$PMT" = "yum" ]]; then
+        # 更新源，确保能找到最新包
+        $PMT update -y
+        
+        # 安装 nginx 核心以及 stream 动态模块插件
+        if [[ "$PMT" = "apt" ]]; then
+            $CMD_INSTALL nginx libnginx-mod-stream
+        else
+            # CentOS/Yum 环境下通常需要 epel-release
             $CMD_INSTALL epel-release
-            if [[ "$?" != "0" ]]; then
-                echo '[nginx-stable]
-name=nginx stable repo
-baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
-gpgcheck=1
-enabled=1
-gpgkey=https://nginx.org/keys/nginx_signing.key
-module_hotfixes=true' > /etc/yum.repos.d/nginx.repo
-            fi
+            $CMD_INSTALL nginx
         fi
-        $CMD_INSTALL nginx
+
         if [[ "$?" != "0" ]]; then
-            colorEcho $RED " Nginx安装失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " Nginx安装失败，请检查网络或软件源"
             exit 1
         fi
+        
+        # --- 关键修复：确保 nginx.conf 包含加载模块的语句 ---
+        if ! grep -q "ngx_stream_module.so" /etc/nginx/nginx.conf; then
+            # 在文件最顶部插入加载指令
+            sed -i '1i load_module /usr/lib/nginx/modules/ngx_stream_module.so;' /etc/nginx/nginx.conf
+        fi
+
         systemctl enable nginx
+        systemctl start nginx
     else
+        # 宝塔用户逻辑保持不变
         res=`which nginx 2>/dev/null`
         if [[ "$?" != "0" ]]; then
             colorEcho $RED " 您安装了宝塔，请在宝塔后台安装nginx后再运行本脚本"
