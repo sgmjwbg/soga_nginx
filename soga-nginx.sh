@@ -43,8 +43,6 @@ fi
 
 BT="false"
 NGINX_CONF_PATH="/etc/nginx/conf.d/"
-# 定义 Stream 配置存放路径
-STREAM_CONF_PATH="/etc/nginx/stream.conf.d"
 res=`which bt 2>/dev/null`
 if [[ "$res" != "" ]]; then
     BT="true"
